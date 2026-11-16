@@ -1,1 +1,1 @@
-# gakushu
+# gakushu.
