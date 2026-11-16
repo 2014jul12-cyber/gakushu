@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#eef5fa"><link rel="icon" href="icon-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>かけざん くく</title>
+<style>
+:root{--bg:#eef5fa;--fg:#1d2b53;--card:#fff;--line:#c9d8e6;--acc:#12a594;--hl:#ffd43b;--ink:#1d2b53;--bad:#e8590c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a2b;--fg:#e8eefc;--card:#1b2640;--line:#33425f;--acc:#3ddbc4;--hl:#e9b900;--ink:#f4f7ff;--bad:#ff922b}}
+:root[data-theme="dark"]{--bg:#121a2b;--fg:#e8eefc;--card:#1b2640;--line:#33425f;--acc:#3ddbc4;--hl:#e9b900;--ink:#f4f7ff;--bad:#ff922b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;-webkit-tap-highlight-color:transparent}
+#app{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:30px;margin:8px 0 4px}
+h2{font-size:20px;margin:22px 0 8px}
+.sub{margin:0 0 16px;opacity:.7}
+button{font:inherit;color:inherit;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 18px;min-height:56px;font-size:22px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.on,.big{background:var(--hl);color:#1d2b53;border-color:transparent;font-weight:700}
+.big{width:100%;min-height:68px;font-size:24px;margin-top:12px}
+.seg{display:flex;gap:10px}.seg button{flex:1}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mon{font-size:min(15vw,84px);font-weight:700;text-align:center;margin:10px 0}
+.mon b{color:var(--acc)}
+.pad{position:relative;width:min(100%,560px);aspect-ratio:3/2;margin:0 auto 14px;background:var(--card);border:3px solid var(--line);border-radius:14px;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ok{background:var(--acc);color:#fff;border-color:transparent;font-weight:700}
+.ng{border-color:var(--bad)}
+.res{text-align:center;font-size:30px;margin:40px 0 16px}
+.miss{text-align:center;font-size:24px;line-height:1.9;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+function $(s){return document.getElementById(s)}
+var app=$('app'),M={};
+try{M=JSON.parse(localStorage.getItem('kk')||'{}')}catch(e){}
+function save(){try{localStorage.setItem('kk',JSON.stringify(M))}catch(e){}}
+var ord=true,Q=[],i=0,rev=false,miss=[],title='',keep=null;
+function shuf(a){for(var n=a.length-1;n>0;n--){var j=Math.floor(Math.random()*(n+1)),t=a[n];a[n]=a[j];a[j]=t}return a}
+function all(){var a=[];for(var x=1;x<=9;x++)for(var y=1;y<=9;y++)a.push([x,y]);return a}
+function weak(){return all().filter(function(q){return M[q[0]+'x'+q[1]]>0})}
+
+function home(){
+  var w=weak().length,h='<h1>かけざん くく</h1><p class="sub">もんだいを みて、かいて、こたえあわせ</p>'+
+  '<div class="seg"><button id="o1" class="'+(ord?'on':'')+'">じゅんばん</button><button id="o2" class="'+(ord?'':'on')+'">ばらばら</button></div>'+
+  '<h2>だんを えらぶ</h2><div class="grid">';
+  for(var d=1;d<=9;d++)h+='<button data-d="'+d+'">'+d+'の だん</button>';
+  h+='</div><button class="big" id="rnd">ランダム (10もん)</button>';
+  if(w)h+='<button class="big" id="wk" style="background:var(--card);color:inherit;border:2px solid var(--bad)">にがて れんしゅう ('+w+')</button>';
+  app.innerHTML=h;
+  $('o1').onclick=function(){ord=true;home()};$('o2').onclick=function(){ord=false;home()};
+  [].forEach.call(document.querySelectorAll('[data-d]'),function(b){b.onclick=function(){var d=+b.dataset.d,a=[];for(var y=1;y<=9;y++)a.push([d,y]);start(ord?a:shuf(a),d+'のだん')}});
+  $('rnd').onclick=function(){start(shuf(all()).slice(0,10),'ランダム')};
+  if(w)$('wk').onclick=function(){start(shuf(weak()).slice(0,10),'にがて')};
+}
+function start(l,t){Q=l;i=0;rev=false;miss=[];title=t;keep=null;ask()}
+function ask(){
+  var q=Q[i];
+  app.innerHTML='<div class="top"><button id="back">← もどる</button><span>'+title+'　'+(i+1)+' / '+Q.length+'</span></div>'+
+  '<div class="mon">'+q[0]+' × '+q[1]+' = '+(rev?'<b>'+q[0]*q[1]+'</b>':'?')+'</div>'+
+  '<div class="pad" id="pad"><canvas id="cv"></canvas></div><div class="row">'+
+  (rev?'<button class="ok" id="y">できた ○</button><button class="ng" id="n">まちがい △</button>':'<button id="clr">けす</button><button class="ok" id="chk">こたえあわせ</button>')+'</div>';
+  $('back').onclick=home;
+  setup();
+  if(rev){var im=new Image();im.onload=function(){var cv=$('cv'),d=window.devicePixelRatio||1;cv.getContext('2d').drawImage(im,0,0,cv.width/d,cv.height/d);cv.style.pointerEvents='none'};im.src=keep}
+  if($('clr'))$('clr').onclick=setup;
+  if($('chk'))$('chk').onclick=function(){keep=$('cv').toDataURL();rev=true;ask()};
+  if($('y'))$('y').onclick=function(){mark(true)};
+  if($('n'))$('n').onclick=function(){mark(false)};
+}
+function setup(){
+  var pad=$('pad'),cv=$('cv'),w=pad.clientWidth,h=pad.clientHeight,d=window.devicePixelRatio||1;
+  cv.width=w*d;cv.height=h*d;
+  var ctx=cv.getContext('2d');ctx.scale(d,d);
+  ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#1d2b53';
+  var down=false;
+  function pt(e){var b=cv.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top]}
+  cv.onpointerdown=function(e){down=true;cv.setPointerCapture(e.pointerId);var p=pt(e);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+0.1,p[1]+0.1);ctx.stroke();e.preventDefault()};
+  cv.onpointermove=function(e){if(!down)return;var p=pt(e);ctx.lineTo(p[0],p[1]);ctx.stroke();ctx.beginPath();ctx.moveTo(p[0],p[1])};
+  cv.onpointerup=cv.onpointercancel=function(){down=false};
+}
+function mark(ok){
+  var q=Q[i],k=q[0]+'x'+q[1];
+  if(ok){if(M[k])M[k]=Math.max(0,M[k]-1)}else{M[k]=(M[k]||0)+1;miss.push(q)}
+  save();i++;rev=false;keep=null;
+  if(i>=Q.length)end();else ask();
+}
+function end(){
+  var n=Q.length-miss.length,h='<div class="res">'+(miss.length?n+' / '+Q.length+' できたよ!':'ぜんぶ せいかい! すごい!')+'</div>';
+  if(miss.length)h+='<div class="miss">もういちど みよう<br>'+miss.map(function(q){return q[0]+' × '+q[1]+' = '+q[0]*q[1]}).join('<br>')+'</div>';
+  h+='<div class="row">'+(miss.length?'<button class="ok" id="re">まちがえた ものだけ</button>':'<button class="ok" id="re">もういちど</button>')+'<button id="hm">ホームへ</button></div>';
+  app.innerHTML=h;
+  $('re').onclick=function(){start(miss.length?shuf(miss.slice()):Q,title)};
+  $('hm').onclick=home;
+}
+home();
+</script>
+<a href="./" style="position:fixed;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:99;display:flex;align-items:center;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid #c9d8e6;background:#fff;color:#1d2b53;font:700 16px sans-serif;text-decoration:none;opacity:.92">⌂ メニュー</a><script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script></body>
+</html>

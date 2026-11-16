@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#eef5fa"><link rel="icon" href="icon-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ひっさん かけざん</title>
+<style>
+:root{--bg:#eef5fa;--fg:#1d2b53;--card:#fff;--line:#c9d8e6;--acc:#12a594;--hl:#ffd43b;--bad:#e8590c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a2b;--fg:#e8eefc;--card:#1b2640;--line:#33425f;--acc:#3ddbc4;--hl:#e9b900;--bad:#ff922b}}
+:root[data-theme="dark"]{--bg:#121a2b;--fg:#e8eefc;--card:#1b2640;--line:#33425f;--acc:#3ddbc4;--hl:#e9b900;--bad:#ff922b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;-webkit-tap-highlight-color:transparent}
+#app{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:30px;margin:8px 0 4px}h2{font-size:20px;margin:20px 0 8px}
+.sub{margin:0 0 12px;opacity:.7;line-height:1.6}
+button{font:inherit;color:inherit;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 18px;min-height:56px;font-size:21px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.on,.big{background:var(--hl);color:#1d2b53;border-color:transparent;font-weight:700}
+.big{display:block;width:100%;min-height:68px;font-size:23px;margin-top:18px}
+.seg{display:flex;gap:10px;flex-wrap:wrap}.seg button{flex:1;min-width:120px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hs{border-collapse:collapse;margin:10px auto;font-size:44px;font-weight:700}
+.hs td{width:64px;height:68px;text-align:center;padding:0}
+.hs tr.ln td{border-top:4px solid var(--fg)}
+.bk{width:56px;height:60px;border:3px dashed var(--acc);border-radius:10px;font-size:38px;font-weight:700;background:var(--card);min-height:0;padding:0}
+.bk.sel{background:var(--hl);color:#1d2b53;border-style:solid}
+.bk.good{border-style:solid;border-color:var(--acc);color:var(--acc)}
+.bk.bad{border-style:solid;border-color:var(--bad);color:var(--bad)}
+.kp{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:440px;margin:12px auto}
+.kp button{font-size:28px;min-height:60px;padding:0}
+.msg{text-align:center;font-size:22px;min-height:34px;margin:6px 0}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ok{background:var(--acc);color:#fff;border-color:transparent;font-weight:700}
+.lg{display:flex;gap:8px;justify-content:center;margin:8px 0 4px}.lg .col{flex:1;max-width:72px;text-align:center}.lg .num{font-size:20px;font-weight:700;min-height:26px}.lg .bw{height:100px;display:flex;align-items:flex-end}.lg .bar{width:100%;min-height:3px;background:var(--line);border-radius:6px 6px 0 0;position:relative;overflow:hidden}.lg .bar i{position:absolute;left:0;right:0;bottom:0;background:var(--acc)}.lg .lb{font-size:13px;opacity:.8;margin-top:2px}.legend{text-align:center;font-size:13px;opacity:.75}
+.work{display:flex;gap:14px;align-items:flex-start;justify-content:center;flex-wrap:wrap}.lcol{flex:0 0 auto}.rcol{flex:1 1 260px;max-width:420px}.memo{position:relative;width:100%;aspect-ratio:1;background:var(--card);border:3px solid var(--line);border-radius:14px;overflow:hidden;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:32px 32px}.mc{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.res{text-align:center;font-size:30px;margin:40px 0 16px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+function $(s){return document.getElementById(s)}
+function loadL(){try{return JSON.parse(localStorage.getItem('hs-log')||'{}')}catch(e){return{}}}
+function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function logDay(ok){var L=loadL(),k=dayKey(),v=L[k]||{c:0,t:0};v.t++;if(ok)v.c++;L[k]=v;try{localStorage.setItem('hs-log',JSON.stringify(L))}catch(e){}}
+function todayC(){var v=loadL()[dayKey()];return v?v.c:0}
+function logHtml(){var L=loadL(),n=new Date(),ds=[],mx=1,sum=0,i;
+  for(i=6;i>=0;i--){var x=new Date(n.getFullYear(),n.getMonth(),n.getDate()-i),v=L[dayKey(x)]||{c:0,t:0};ds.push({l:(x.getMonth()+1)+'/'+x.getDate(),c:v.c,t:v.t});mx=Math.max(mx,v.t);sum+=v.c}
+  var t=ds[6];
+  return '<h2>きろく</h2><p class="sub" style="margin:0">きょう: <b>'+t.c+'</b> もん せいかい (やった もんだい '+t.t+')<br>この 7にちで: <b>'+sum+'</b> もん せいかい</p><div class="lg">'+
+  ds.map(function(d){return '<div class="col"><div class="num">'+d.c+'</div><div class="bw"><div class="bar" style="height:'+Math.round(d.t/mx*100)+'px"><i style="height:'+(d.t?Math.round(d.c/d.t*100):0)+'%"></i></div></div><div class="lb">'+d.l+'</div></div>'}).join('')+
+  '</div><div class="legend">みどり = いっぱつ せいかい ／ ぜんぶ = やった もんだい</div>'}
+var memo=null;
+function newMemo(){memo=document.createElement('canvas');memo.className='mc';memo._r=false}
+function initMemo(host){var w=host.clientWidth||300,d=window.devicePixelRatio||1,ctx;
+  memo.width=w*d;memo.height=w*d;ctx=memo.getContext('2d');ctx.scale(d,d);
+  ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#1d2b53';
+  var down=false;
+  function pt(e){var b=memo.getBoundingClientRect(),s=w/(b.width||w);return [(e.clientX-b.left)*s,(e.clientY-b.top)*s]}
+  memo.onpointerdown=function(e){down=true;memo.setPointerCapture(e.pointerId);var p=pt(e);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+0.1,p[1]+0.1);ctx.stroke();e.preventDefault()};
+  memo.onpointermove=function(e){if(!down)return;var p=pt(e);ctx.lineTo(p[0],p[1]);ctx.stroke();ctx.beginPath();ctx.moveTo(p[0],p[1])};
+  memo.onpointerup=memo.onpointercancel=function(){down=false}}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+var app=$('app'),KINDS=['1けた × 1けた','2けた × 1けた','3けた × 1けた','2けた × 2けた'],kind=0,hard=false,Q=[],qi=0,sel=null,inp={},chk=false,score=0,msg='';
+function rows(a,b){var A={s:''+a,sh:0},B={s:''+b,sh:0};if(b<10)return [A,B,{s:''+a*b,sh:0}];return [A,B,{s:''+a*(b%10),sh:0},{s:''+a*Math.floor(b/10),sh:1},{s:''+a*b,sh:0}]}
+function fit(R0,M,a,b){var r=rows(a,b);if(r.length!=R0.length)return false;for(var i=0;i<r.length;i++){var s=r[i].s;if(s.length!=R0[i].s.length)return false;for(var j=0;j<s.length;j++)if(!M[i][j]&&s[j]!=R0[i].s[j])return false}return true}
+function cnt(R0,M){var la=R0[0].s.length,lb=R0[1].s.length,n=0;for(var a=[2,10,100][la-1];a<[10,100,1000][la-1]&&n<2;a++)for(var b=lb==1?2:10;b<(lb==1?10:100)&&n<2;b++)if(fit(R0,M,a,b))n++;return n}
+function mk(R,f){return R.map(function(r,i){return r.s.split('').map(function(){return f(i)})})}
+function nb(M){return M.reduce(function(s,r){return s+r.filter(Boolean).length},0)}
+function easy(R){var M=mk(R,function(){return false}),c=[];for(var i=2;i<R.length;i++)for(var j=0;j<R[i].s.length;j++)c.push([i,j]);
+  for(var n=c.length-1;n>0;n--){var k=rnd(0,n),t=c[n];c[n]=c[k];c[k]=t}
+  c.slice(0,[2,2,3,4][kind]).forEach(function(x){M[x[0]][x[1]]=true});return M}
+function gen(){var a,b,R,M=null;
+  do{a=kind==0?rnd(2,9):kind==2?rnd(100,999):rnd(11,99);b=kind==3?rnd(22,99):rnd(2,9)}while(a%10==0||(kind==3&&b%10<2));
+  R=rows(a,b);
+  if(hard)for(var t=0;t<300;t++){var m=mk(R,function(){return Math.random()<.4});if(nb(m)>=(kind?3:2)&&cnt(R,m)==1){M=m;break}}
+  return {R:R,M:M||easy(R),miss:false}}
+function home(){
+  var h='<h1>ひっさん かけざん</h1><p class="sub">あなの あいた ところに すうじを いれよう</p><h2>かたち</h2><div class="seg">';
+  KINDS.forEach(function(k,i){h+='<button id="k'+i+'" class="'+(kind==i?'on':'')+'">'+k+'</button>'});
+  h+='</div><h2>もんだい</h2><div class="seg"><button id="h0" class="'+(hard?'':'on')+'">こたえの ところ だけ</button><button id="h1" class="'+(hard?'on':'')+'">むしくい (あちこち)</button></div><button class="big" id="go">はじめる ('+(kind?5:10)+'もん)</button>'+logHtml();
+  app.innerHTML=h;
+  KINDS.forEach(function(k,i){$('k'+i).onclick=function(){kind=i;home()}});
+  $('h0').onclick=function(){hard=false;home()};$('h1').onclick=function(){hard=true;home()};
+  $('go').onclick=function(){Q=[];for(var i=0;i<(kind?5:10);i++)Q.push(gen());qi=0;score=0;next()}}
+function next(){newMemo();sel=null;inp={};chk=false;msg='';draw();pickFirst()}
+function cells(p){var o=[];p.R.forEach(function(r,i){r.s.split('').forEach(function(d,j){if(p.M[i][j])o.push(i+','+j)})});return o}
+function pickFirst(){var c=cells(Q[qi]);sel=c[0];draw()}
+function draw(){
+  var p=Q[qi],N=0,h;
+  p.R.forEach(function(r){N=Math.max(N,r.s.length+r.sh)});N++;
+  h='<div class="top"><button id="back">← もどる</button><span>'+KINDS[kind]+'　'+(qi+1)+' / '+Q.length+'</span></div><div class="work"><div class="lcol"><table class="hs">';
+  p.R.forEach(function(r,i){
+    h+='<tr'+(i==2||(p.R.length>3&&i==p.R.length-1)?' class="ln"':'')+'>';
+    var c0=N-r.sh-r.s.length;
+    for(var c=0;c<N;c++){var j=c-c0,t='';
+      if(i==1&&c==0)t='×';
+      else if(j>=0&&j<r.s.length){
+        if(p.M[i][j]){var k=i+','+j,v=inp[k]||'',cl='bk'+(chk?(v==r.s[j]?' good':' bad'):(sel==k?' sel':''));t='<button class="'+cl+'" data-k="'+k+'">'+v+'</button>'}
+        else t=r.s[j]}
+      h+='<td>'+t+'</td>'}
+    h+='</tr>'});
+  h+='</table><div class="msg">'+msg+'</div></div><div class="rcol"><div class="sub" style="margin:0 0 4px">けいさん メモ (ここに かいてね)</div><div class="memo" id="mh"></div><div class="row" style="margin-top:8px"><button id="mclr">メモを けす</button></div></div></div><div class="kp">';
+  for(var d=1;d<=9;d++)h+='<button data-d="'+d+'">'+d+'</button>';
+  h+='<button data-d="0">0</button></div><div class="row">'+(chk&&msg.indexOf('せいかい')==0?'<button class="ok" id="nx">つぎへ</button>':chk?'<button id="fix">なおす</button><button id="see">こたえを みる</button>':'<button id="del">けす</button><button class="ok" id="chk">こたえあわせ</button>')+'</div>';
+  app.innerHTML=h;
+  $('back').onclick=home;
+  var mh=$('mh');mh.appendChild(memo);if(!memo._r){initMemo(mh);memo._r=true}
+  $('mclr').onclick=function(){var c=memo.getContext('2d');c.save();c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,memo.width,memo.height);c.restore()};
+  [].forEach.call(document.querySelectorAll('.bk'),function(b){b.onclick=function(){if(!chk){sel=b.dataset.k;draw()}}});
+  [].forEach.call(document.querySelectorAll('[data-d]'),function(b){b.onclick=function(){put(b.dataset.d)}});
+  if($('del'))$('del').onclick=function(){if(sel){inp[sel]='';draw()}};
+  if($('chk'))$('chk').onclick=check;
+  if($('nx'))$('nx').onclick=function(){qi++;if(qi>=Q.length)end();else next()};
+  if($('fix'))$('fix').onclick=function(){var p=Q[qi];cells(p).forEach(function(k){var a=k.split(',');if(inp[k]!=p.R[a[0]].s[a[1]])inp[k]=''});chk=false;msg='';var c=cells(p).filter(function(k){return !inp[k]});sel=c[0];draw()};
+  if($('see'))$('see').onclick=function(){var p=Q[qi];cells(p).forEach(function(k){var a=k.split(',');inp[k]=p.R[a[0]].s[a[1]]});msg='せいかい の こたえ だよ';logDay(false);p.miss=true;chk=true;draw()}}
+function put(d){if(chk||!sel)return;inp[sel]=d;var c=cells(Q[qi]),i=c.indexOf(sel),n=null;for(var s=1;s<=c.length;s++){var k=c[(i+s)%c.length];if(!inp[k]){n=k;break}}if(n)sel=n;draw()}
+function check(){var p=Q[qi],c=cells(p),ok=true;
+  for(var i=0;i<c.length;i++)if(!inp[c[i]]){msg='ぜんぶ いれてね';draw();return}
+  c.forEach(function(k){var a=k.split(',');if(inp[k]!=p.R[a[0]].s[a[1]])ok=false});
+  chk=true;if(ok){msg='せいかい! ○';logDay(!p.miss);if(!p.miss)score++}else{msg='ちがう ところが あるよ';p.miss=true}draw()}
+function end(){app.innerHTML='<div class="res">'+score+' / '+Q.length+' いっぱつで できたよ!</div><div class="msg">きょうの ごうけい: '+todayC()+' もん せいかい</div><div class="row"><button class="ok" id="re">もういちど</button><button id="hm">ホームへ</button></div>';
+  $('re').onclick=function(){Q=[];for(var i=0;i<(kind?5:10);i++)Q.push(gen());qi=0;score=0;next()};$('hm').onclick=home}
+home();
+</script>
+<a href="./" style="position:fixed;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:99;display:flex;align-items:center;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid #c9d8e6;background:#fff;color:#1d2b53;font:700 16px sans-serif;text-decoration:none;opacity:.92">⌂ メニュー</a><script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script></body>
+</html>
